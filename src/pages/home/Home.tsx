@@ -1,3 +1,9 @@
+import { Box } from '@mui/material';
+
 export const Home = () => {
-  return <h1>Home Page</h1>;
+  return (
+    <Box>
+        Home Page
+    </Box>
+  );
 };
