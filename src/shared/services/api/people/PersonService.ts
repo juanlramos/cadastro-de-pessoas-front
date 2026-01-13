@@ -2,8 +2,8 @@ import { Api } from "../axios-config";
 import type { Person } from "../../../models";
 
 const PersonService = {
-  getAll: async () => {
-    const { data } = await Api.get<Person[]>("/person");
+  getAll: async (filter = "") => {
+    const { data } = await Api.get<Person[]>(`/person?name_like=${filter}`);
     return data;
   },
 

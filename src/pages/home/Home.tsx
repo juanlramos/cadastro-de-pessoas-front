@@ -2,6 +2,7 @@ import { AddOutlined, Search } from "@mui/icons-material";
 import {
   Box,
   Button,
+  CircularProgress,
   InputAdornment,
   Modal,
   TextField,
@@ -14,14 +15,33 @@ import { PersonService } from "../../shared/services/api/people/PersonService";
 
 export const Home = () => {
   const [open, setOpen] = useState(false);
-  const handleOpenModal = () => setOpen(!open);
   const [person, setPerson] = useState<Person[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState("");
+
+  const handleOpenModal = () => setOpen(!open);
 
   useEffect(() => {
-    PersonService.getAll().then((res) => {
-      setPerson(res);
-    });
-  }, []);
+    setLoading(true);
+    const handler = setTimeout(() => {
+      const getAllPeople = async () => {
+        try {
+          const res = await PersonService.getAll(filter);
+          setPerson(res);
+        } catch (error) {
+          console.error("Erro ao buscar pessoas:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      getAllPeople();
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [filter]);
 
   return (
     <>
@@ -45,6 +65,10 @@ export const Home = () => {
           <TextField
             variant="outlined"
             label="Pesquisar"
+            value={filter}
+            onChange={(e) => {
+              setFilter(e.target.value);
+            }}
             sx={{
               width: { xs: "75%", sm: "50%", md: "25%" },
             }}
@@ -85,24 +109,33 @@ export const Home = () => {
             justifyContent: "center",
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexWrap: "wrap",
-              width: "65%",
-              gap: 5,
-            }}
-          >
-            {person.map((per: any) => (
-              <CustomCard
-                name={per.name}
-                email={per.email}
-                birthday={per.birthday}
-              />
-            ))}
-          </Box>
+          {loading ? (
+            <CircularProgress />
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexWrap: "wrap",
+                width: "65%",
+                gap: 5,
+              }}
+            >
+              {person.length > 0 ? (
+                person.map((per: any) => (
+                  <CustomCard
+                    key={per.id}
+                    name={per.name}
+                    email={per.email}
+                    birthday={per.birthday}
+                  />
+                ))
+              ) : (
+                <>Nenhum Registro encontrado</>
+              )}
+            </Box>
+          )}
         </Box>
       </Box>
     </>
